@@ -41,8 +41,8 @@ except ImportError:
 
 """
 
-breakpoint_regex = r"^[\t ]*_breakpoint\(\)  # ([a-f0-9]{8})"
-breakpoint_re = re.compile(breakpoint_regex, re.DOTALL)
+bp_regex = r"^[\t ]*_breakpoint\(\)  # ([a-f0-9]{8})"
+bp_re = re.compile(bp_regex, re.DOTALL)
 
 EXPR_PRE = ['class', 'def', 'if', 'for', 'try', 'while', 'with']
 EXPR_PST = ['elif', 'else', 'except', 'finally']
@@ -59,7 +59,7 @@ class Breakpoint(object):
     def __init__(self, from_text=None):
         self.uid = None
         if from_text is not None:
-            m = breakpoint_re.match(from_text)
+            m = bp_re.match(from_text)
             if m:
                 self.uid = m.groups()[0]
         else:
@@ -84,7 +84,7 @@ class Breakpoint(object):
 # Helper routines #
 ###################
 
-def is_python(view):   # only run if syntax is set to Python
+def is_python(view):
     return view.match_selector(0, 'source.python')
 
 
@@ -153,6 +153,8 @@ def calc_indent(view, rg):
             line = view.substr(l).strip()
             if not line or line.startswith('#'):
                 lines.remove(l)
+            elif ln is not None:
+                break  # reached current and next line
 
     # a couple of hacks to handle corner cases
     if not ln:
@@ -180,15 +182,14 @@ def calc_indent(view, rg):
     next_indent = _indent(next_line)
     debug('indent p', prev_indent, 'c', curr_indent, 'n', next_indent)
 
-    # abort if previous or current line already contains a breakpoint
-    # at the same level
-    if ((breakpoint_re.match(prev_line) and prev_indent == curr_indent)
-       or (breakpoint_re.match(curr_line) and curr_indent == next_indent)):
-        return
-
     def _result(msg, indent):
         debug(msg)
-        return indent
+        # check if previous or next line already contains a breakpoint
+        # at the same indent level
+        c1 = indent == prev_indent and bp_re.match(prev_line)
+        c2 = indent == next_indent and bp_re.match(next_line) and not curr_line
+        if not (c1 or c2):
+            return indent
 
     # order of checks is critical!
     if expr_re1.match(prev_line):
@@ -218,7 +219,7 @@ def calc_indent(view, rg):
     elif prev_dist <= next_dist:
         return _result('he1-1', prev_indent)
     else:
-        return _result('he1-2', curr_indent)
+        return _result('he1-2', next_indent)
 
 
 def find_pdb_block(view):
@@ -230,7 +231,7 @@ def find_pdb_block(view):
 
 def find_breakpoint(view):
     """return position of the 1st breakpoint, or None"""
-    rg = view.find(breakpoint_regex, 0)
+    rg = view.find(bp_regex, 0)
     if rg:
         return rg.end()
 
@@ -250,11 +251,10 @@ def remove_breakpoint(edit, view, rg):
     lines = view.lines(sublime.Region(0, rg.end()))
     ln = min(ln_from_region(view, rg), len(lines) - 1)
 
-    for i in (0, 1):  # search current and previous lines
-        bp = Breakpoint(view.substr(lines[ln - i]))
-        debug('lines[ln-%d]' % i, view.substr(lines[ln - i]))
+    for line in (lines[ln], lines[ln - 1]):  # search current and prev lines
+        bp = Breakpoint(view.substr(line))
         if bp.uid:
-            view.erase(edit, view.full_line(lines[ln - i]))
+            view.erase(edit, view.full_line(line))
             view.erase_regions(bp.rg_key)
             return True
     return False
@@ -322,7 +322,7 @@ class GotoBreakpointCommand(sublime_plugin.TextCommand):
         if not is_python(view):
             return
 
-        bp_regions = view.find_all(breakpoint_regex, 0)
+        bp_regions = view.find_all(bp_regex, 0)
         items = [[] for __ in bp_regions]
         lines = view.lines(sublime.Region(0, view.size()))
 
@@ -379,6 +379,6 @@ class PythonBreakpointEventListener(sublime_plugin.EventListener):
         on file load, scan it for breakpoints and highlight them
         """
         if is_python(view) and find_pdb_block(view):
-            for rg in view.find_all(breakpoint_regex, 0):
+            for rg in view.find_all(bp_regex, 0):
                 bp = Breakpoint(view.substr(rg))
                 bp.highlight(view, rg)
