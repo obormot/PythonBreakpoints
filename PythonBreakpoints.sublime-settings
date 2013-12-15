@@ -1,0 +1,10 @@
+{
+  // "auto" (read from global settings), or a positive integer
+  "tab_size": "auto",
+
+  // name of scope for color highlighting; replace with "mark" if "invalid" is annoying
+  "highlight": "invalid",
+
+  // auto-save the file on breakpoint toggle
+  "save_on_toggle": false
+}

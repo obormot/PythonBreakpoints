@@ -1,0 +1,7 @@
+[
+  { "caption": "Breakpoints: Toggle", "command": "toggle_breakpoint" },
+
+  { "caption": "Breakpoints: Goto", "command": "goto_breakpoint" },
+
+  { "caption": "Breakpoints: Clear All", "command": "clear_all_breakpoints" }
+]

@@ -1,0 +1,113 @@
+[
+ {
+    "id": "goto",
+    "caption": "Goto",
+    "children":
+    [
+      {
+        "caption": "Goto Breakpoint...",
+        "command": "goto_breakpoint"
+      }
+    ]
+  },
+  {
+    "id": "tools",
+    "caption": "Tools",
+    "children":
+    [
+      {
+        "caption": "Breakpoints",
+        "children":
+        [
+          {
+            "caption": "Clear All",
+            "command": "clear_all_breakpoints",
+            "mnemonic": "C"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "preferences",
+    "caption": "Preferences",
+    "mnemonic": "n",
+    "children":
+    [
+      {
+        "caption": "Package Settings",
+        "mnemonic": "P",
+        "id": "package-settings",
+        "children":
+        [
+          {
+            "caption": "PythonBreakpoints",
+            "children":
+            [
+              {
+                "caption": "Settings – Default",
+                "command": "open_file",
+                "args": {"file": "${packages}/PythonBreakpoints/PythonBreakpoints.sublime-settings"}
+              },
+              {
+                "caption": "Settings – User",
+                "command": "open_file",
+                "args": {"file": "${packages}/User/PythonBreakpoints.sublime-settings"}
+              },
+              { "caption": "-" },
+              {
+                "caption": "Key Bindings – Default",
+                "command": "open_file",
+                "args": {
+                  "file": "${packages}/PythonBreakpoints/Default (OSX).sublime-keymap",
+                  "platform": "OSX"
+                }
+              },
+              {
+                "caption": "Key Bindings – Default",
+                "command": "open_file",
+                "args": {
+                  "file": "${packages}/PythonBreakpoints/Default (Linux).sublime-keymap",
+                  "platform": "Linux"
+                }
+              },
+              {
+                "caption": "Key Bindings – Default",
+                "command": "open_file",
+                "args": {
+                  "file": "${packages}/PythonBreakpoints/Default (Windows).sublime-keymap",
+                  "platform": "Windows"
+                }
+              },
+              {
+                "caption": "Key Bindings – User",
+                "command": "open_file",
+                "args": {
+                  "file": "${packages}/User/Default (OSX).sublime-keymap",
+                  "platform": "OSX"
+                }
+              },
+              {
+                "caption": "Key Bindings – User",
+                "command": "open_file",
+                "args": {
+                  "file": "${packages}/User/Default (Linux).sublime-keymap",
+                  "platform": "Linux"
+                }
+              },
+              {
+                "caption": "Key Bindings – User",
+                "command": "open_file",
+                "args": {
+                  "file": "${packages}/User/Default (Windows).sublime-keymap",
+                  "platform": "Windows"
+                }
+              },
+              { "caption": "-" }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+]

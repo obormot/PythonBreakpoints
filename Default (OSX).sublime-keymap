@@ -1,0 +1,7 @@
+[
+//{ "keys": [], "command": "clear_all_breakpoints" },
+
+  { "keys": ["ctrl+shift+b"], "command": "toggle_breakpoint" },
+
+  { "keys": ["super+g"], "command": "goto_breakpoint" }
+]
