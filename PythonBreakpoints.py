@@ -21,7 +21,7 @@ import sublime_plugin
 settings = sublime.load_settings("PythonBreakpoints.sublime-settings")
 
 tab_size = settings.get('tab_size')
-if tab_size == 'auto':
+if tab_size == 'auto' or tab_size == None:
     g_settings = sublime.load_settings('Preferences.sublime-settings')
     tab_size = g_settings.get('tab_size', 4)
 
