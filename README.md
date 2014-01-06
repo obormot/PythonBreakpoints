@@ -13,7 +13,7 @@ This is a [Sublime Text](http://www.sublimetext.com) plugin allowing to quickly 
 
 Through [Package Control](https://sublime.wbond.net/packages/Package%20Control)
 
-`Command Palette` > `Package Control: Install Package` > `PythonBreakpoints`
+`Command Palette` > `Package Control: Install Package` > `Python Breakpoints`
 
 or clone this repository into your version/platform specific Packages directory.
 
@@ -31,5 +31,5 @@ or clone this repository into your version/platform specific Packages directory.
 
 ## Caveats
 
-* minimally tested with ST3 and on Windows
+* only space indentation is supported
 * with non-PEP8 one-liners or files with no imports your mileage may vary

@@ -3,9 +3,8 @@
 Python Breakpoints plugin for Sublime Text editor
 
 Author: Oscar Ibatullin (github.com/obormot)
-"""
 
-from __future__ import print_function
+"""
 import ast
 import re
 import uuid
