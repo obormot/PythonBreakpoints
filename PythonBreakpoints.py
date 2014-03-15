@@ -5,6 +5,7 @@ Python Breakpoints plugin for Sublime Text editor
 Author: Oscar Ibatullin (github.com/obormot)
 
 """
+from __future__ import print_function
 import ast
 import re
 import uuid
@@ -108,6 +109,7 @@ def calc_pdb_position(view):
     """
     size = view.size()
     text = view.substr(sublime.Region(0, size))
+    lines = view.lines(sublime.Region(0, size))
 
     # make a few tries to compile the AST
     # if code contains errors strip at line before the error and retry
@@ -118,23 +120,24 @@ def calc_pdb_position(view):
             # constructs, preferrably after the last import statement
             fst = imp = nxt = None
             for node in ast.iter_child_nodes(ast.parse(text)):
+                tx = view.substr(lines[node.lineno - 1])
                 if type(node) in (ast.Import, ast.ImportFrom):
                     if not fst:
                         fst = node.lineno
                     imp = node.lineno
                 elif not fst:
                     fst = node.lineno
-                elif imp:
+                elif imp and not (tx.endswith('"""') or tx.endswith("'''")):
                     nxt = node.lineno
                     break
             ln = nxt if nxt else imp if imp else fst
             return view.text_point(ln - 1 if ln > 1 else ln, 0)
         except (IndentationError, SyntaxError) as e:
-            lines = view.lines(sublime.Region(0, size))
             debug('err in line %d %r' % (
                   e.lineno, view.substr(lines[e.lineno - 1])))
             size = lines[e.lineno - 2].begin()
             text = view.substr(sublime.Region(0, size))
+            lines = view.lines(sublime.Region(0, size))
 
 
 def calc_indent(view, rg):
