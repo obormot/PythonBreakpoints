@@ -11,25 +11,29 @@ This is a [Sublime Text](http://www.sublimetext.com) plugin allowing to quickly 
 
 ## Install
 
-Through [Package Control](https://sublime.wbond.net/packages/Package%20Control)
+Through [Package Control](https://sublime.wbond.net/packages/Package%20Control):
 
 `Command Palette` > `Package Control: Install Package` > `Python Breakpoints`
 
-or clone this repository into your version/platform specific Packages directory.
+From GitHub: Clone this repository into your version/platform specific Packages directory. Example for Mac and ST2 (note the space in the target directory name):
+
+    cd ~/Library/Application Support/Sublime Text 2/Packages
+    git clone https://github.com/obormot/PythonBreakpoints 'Python Breakpoints'
 
 ## Usage
 
-`Command Palette` > `Breakpoints: ...`
+`Command Palette` > `Python Breakpoints: ...`
 
 * `Toggle` a breakpoint at current line (or `ctrl+shift+b`)
-* `Goto` a selected breakpoint (or `alt+g` / `cmd+g`, or `Menu` > `Goto` > `Goto Breakpoint...`)
-* `Clear All` breakpoints in current file (or `Menu` > `Tools` > `Breakpoints` > `Clear All`)
+* `Goto` a selected breakpoint (or `alt+g` / `cmd+g`, or `Menu` > `Goto` > `Goto Python Breakpoint...`)
+* `Clear All` breakpoints in current file (or `Menu` > `Tools` > `Breakpoints` > `Clear All Python Breakpoints`)
 
 ## Settings
 
-`Preferences` > `Package Settings` > `PythonBreakpoints`
+`Preferences` > `Package Settings` > `Python Breakpoints`
 
 ## Caveats
 
 * only space indentation is supported
 * with non-PEP8 one-liners or files with no imports your mileage may vary
+
