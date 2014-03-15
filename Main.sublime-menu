@@ -5,7 +5,7 @@
     "children":
     [
       {
-        "caption": "Goto Breakpoint...",
+        "caption": "Goto Python Breakpoint...",
         "command": "goto_breakpoint"
       }
     ]
@@ -20,7 +20,7 @@
         "children":
         [
           {
-            "caption": "Clear All",
+            "caption": "Clear All Python Breakpoints",
             "command": "clear_all_breakpoints",
             "mnemonic": "C"
           }
@@ -41,13 +41,13 @@
         "children":
         [
           {
-            "caption": "PythonBreakpoints",
+            "caption": "Python Breakpoints",
             "children":
             [
               {
                 "caption": "Settings – Default",
                 "command": "open_file",
-                "args": {"file": "${packages}/PythonBreakpoints/PythonBreakpoints.sublime-settings"}
+                "args": {"file": "${packages}/Python Breakpoints/PythonBreakpoints.sublime-settings"}
               },
               {
                 "caption": "Settings – User",
@@ -59,7 +59,7 @@
                 "caption": "Key Bindings – Default",
                 "command": "open_file",
                 "args": {
-                  "file": "${packages}/PythonBreakpoints/Default (OSX).sublime-keymap",
+                  "file": "${packages}/Python Breakpoints/Default (OSX).sublime-keymap",
                   "platform": "OSX"
                 }
               },
@@ -67,7 +67,7 @@
                 "caption": "Key Bindings – Default",
                 "command": "open_file",
                 "args": {
-                  "file": "${packages}/PythonBreakpoints/Default (Linux).sublime-keymap",
+                  "file": "${packages}/Python Breakpoints/Default (Linux).sublime-keymap",
                   "platform": "Linux"
                 }
               },
@@ -75,7 +75,7 @@
                 "caption": "Key Bindings – Default",
                 "command": "open_file",
                 "args": {
-                  "file": "${packages}/PythonBreakpoints/Default (Windows).sublime-keymap",
+                  "file": "${packages}/Python Breakpoints/Default (Windows).sublime-keymap",
                   "platform": "Windows"
                 }
               },

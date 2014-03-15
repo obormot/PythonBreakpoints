@@ -1,7 +1,7 @@
 [
-  { "caption": "Breakpoints: Toggle", "command": "toggle_breakpoint" },
+  { "caption": "Python Breakpoints: Toggle", "command": "toggle_breakpoint" },
 
-  { "caption": "Breakpoints: Goto", "command": "goto_breakpoint" },
+  { "caption": "Python Breakpoints: Goto", "command": "goto_breakpoint" },
 
-  { "caption": "Breakpoints: Clear All", "command": "clear_all_breakpoints" }
+  { "caption": "Python Breakpoints: Clear All", "command": "clear_all_breakpoints" }
 ]
