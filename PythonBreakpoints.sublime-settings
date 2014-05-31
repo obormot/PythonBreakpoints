@@ -1,4 +1,7 @@
 {
+  // preferred debugger (pdb, ipdb, pudb,..) - must support set_trace() call
+  "debugger": "pdb",
+
   // "auto" (read from global settings), or a positive integer
   "tab_size": "auto",
 

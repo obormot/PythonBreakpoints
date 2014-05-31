@@ -1,7 +1,7 @@
 Sublime Text Python Breakpoints
 ===============================
 
-This is a [Sublime Text](http://www.sublimetext.com) plugin allowing to quickly set Python breakpoints by injecting [i]pdb.set_trace().
+This is a [Sublime Text](http://www.sublimetext.com) plugin allowing to quickly set Python breakpoints by injecting set_trace() call of pdb or other debugger of your choice.
 
 ## Features
 

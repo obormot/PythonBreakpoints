@@ -33,13 +33,11 @@ debug = lambda *a: None  # replace with debug = print if needed
 #############
 
 pdb_block = """\
-try:  # do not edit! added by PythonBreakpoints
-    from ipdb import set_trace as _breakpoint
-except ImportError:
-    from pdb import set_trace as _breakpoint
+# do not edit! added by PythonBreakpoints
+from %s import set_trace as _breakpoint
 
 
-"""
+""" % settings.get('debugger', 'pdb')
 
 bp_regex = r"^[\t ]*_breakpoint\(\)  # ([a-f0-9]{8})"
 bp_re = re.compile(bp_regex, re.DOTALL)
