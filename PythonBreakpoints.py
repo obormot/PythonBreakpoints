@@ -14,30 +14,43 @@ import sublime
 import sublime_plugin
 
 
+debug = lambda *a: None  # replace with debug = print if needed
+
+
 ############
 # Settings #
 ############
 
-settings = sublime.load_settings("PythonBreakpoints.sublime-settings")
-
-tab_size = settings.get('tab_size')
-if tab_size == 'auto' or tab_size is None:
-    g_settings = sublime.load_settings('Preferences.sublime-settings')
-    tab_size = g_settings.get('tab_size', 4)
-
-debug = lambda *a: None  # replace with debug = print if needed
+settings = None
+pdb_block = ''
+tab_size = 4
 
 
-#############
-# Constants #
-#############
+def plugin_loaded():
+    global settings
+    settings = sublime.load_settings("PythonBreakpoints.sublime-settings")
 
-pdb_block = """\
+    global tab_size
+    tab_size = settings.get('tab_size')
+    if tab_size == 'auto' or tab_size is None:
+        g_settings = sublime.load_settings('Preferences.sublime-settings')
+        tab_size = g_settings.get('tab_size', 4)
+
+    global pdb_block
+    pdb_block = """\
 # do not edit! added by PythonBreakpoints
 from %s import set_trace as _breakpoint
 
 
 """ % settings.get('debugger', 'pdb')
+
+# for ST2
+plugin_loaded()
+
+
+#############
+# Constants #
+#############
 
 bp_regex = r"^[\t ]*_breakpoint\(\)  # ([a-f0-9]{8})"
 bp_re = re.compile(bp_regex, re.DOTALL)
