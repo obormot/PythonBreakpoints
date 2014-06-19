@@ -25,7 +25,7 @@ From GitHub: Clone this repository into your version/platform specific Packages 
 `Command Palette` > `Python Breakpoints: ...`
 
 * `Toggle` a breakpoint at current line (or `ctrl+shift+b`)
-* `Goto` a selected breakpoint (or `alt+g` / `cmd+g`, or `Menu` > `Goto` > `Goto Python Breakpoint...`)
+* `Goto` a selected breakpoint (or `alt+g` / `ctrl+shift+g`, or `Menu` > `Goto` > `Goto Python Breakpoint...`)
 * `Clear All` breakpoints in current file (or `Menu` > `Tools` > `Breakpoints` > `Clear All Python Breakpoints`)
 
 ## Settings
