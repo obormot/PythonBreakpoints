@@ -25,7 +25,7 @@ From GitHub: Clone this repository into your version/platform specific Packages 
 `Command Palette` > `Python Breakpoints: ...`
 
 * `Toggle` a breakpoint at current line (or `ctrl+shift+b`)
-* `Goto` a selected breakpoint (or `alt+g` for Windows and Linux, `ctrl+shift+g` for OS X, or `Menu` > `Goto` > `Goto Python Breakpoint...`)
+* `Goto` a selected breakpoint (or `ctrl+shift+g`, or `Menu` > `Goto` > `Goto Python Breakpoint...`)
 * `Clear All` breakpoints in current file (or `Menu` > `Tools` > `Breakpoints` > `Clear All Python Breakpoints`)
 
 ## Settings
@@ -35,5 +35,4 @@ From GitHub: Clone this repository into your version/platform specific Packages 
 ## Caveats
 
 * only space indentation is supported
-* with non-PEP8 one-liners or files with no imports your mileage may vary
-
+* your mileage may vary with non-PEP8 one-liners or code without import statements

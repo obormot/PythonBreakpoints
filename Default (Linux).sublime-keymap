@@ -3,5 +3,5 @@
 
   { "keys": ["ctrl+shift+b"], "command": "toggle_breakpoint" },
 
-  { "keys": ["alt+g"], "command": "goto_breakpoint" }
+  { "keys": ["ctrl+shift+g"], "command": "goto_breakpoint" }
 ]
