@@ -1,4 +1,4 @@
-Python Breakpoints 0.3.0 Changelog:
+Python Breakpoints 0.3.2 Changelog:
 
 Please be sure to restart Sublime Text to start using the new version.
 
