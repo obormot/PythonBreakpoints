@@ -1,34 +1,34 @@
 # -*- coding: utf-8 -*-
 """
-Python Breakpoints plugin for Sublime Text editor
+Python Breakpoints plugin for Sublime Text 2/3
 
 Author: Oscar Ibatullin (github.com/obormot)
 
 """
 from __future__ import print_function
-import ast
 import re
+import sys
 import uuid
 
 import sublime
 import sublime_plugin
 
 
-debug = lambda *a: None  # replace with debug = print if needed
-
-
 ############
 # Settings #
 ############
 
+# replace with "debug = print" to print debug messages to the ST console
+debug = lambda *a: None
+
+# defaults
 settings = None
-pdb_block = ''
 tab_size = 4
 
 
 def plugin_loaded():
     global settings
-    settings = sublime.load_settings("PythonBreakpoints.sublime-settings")
+    settings = sublime.load_settings('PythonBreakpoints.sublime-settings')
 
     global tab_size
     tab_size = settings.get('tab_size')
@@ -36,31 +36,25 @@ def plugin_loaded():
         g_settings = sublime.load_settings('Preferences.sublime-settings')
         tab_size = g_settings.get('tab_size', 4)
 
-    global pdb_block
-    pdb_block = """\
-# do not edit! added by PythonBreakpoints
-from %s import set_trace as _breakpoint
-
-
-""" % settings.get('debugger', 'pdb')
 
 # for ST2
-plugin_loaded()
+if sys.version_info < (3,):
+    plugin_loaded()
 
 
 #############
 # Constants #
 #############
 
-bp_regex = r"^[\t ]*_breakpoint\(\)  # ([a-f0-9]{8})"
+bp_regex = r"^[\t ]*import [\w.; ]+set_trace\(\)  # breakpoint ([a-f0-9]{8}) //"
 bp_re = re.compile(bp_regex, re.DOTALL)
 
 EXPR_PRE = ['class', 'def', 'if', 'for', 'try', 'while', 'with']
 EXPR_PST = ['elif', 'else', 'except', 'finally']
 
-expr_re0 = re.compile(r"^[\t ]*(%s)[: ]" % '|'.join(EXPR_PRE))
-expr_re1 = re.compile(r"^[\t ]*(%s)[: ]" % '|'.join(EXPR_PRE + EXPR_PST))
-expr_re2 = re.compile(r"^[\t ]*(%s)[: ]" % '|'.join(EXPR_PST))
+expr_re0 = re.compile(r"^[\t ]*({tokens})[: ]".format(tokens='|'.join(EXPR_PRE)))
+expr_re1 = re.compile(r"^[\t ]*({tokens})[: ]".format(tokens='|'.join(EXPR_PRE + EXPR_PST)))
+expr_re2 = re.compile(r"^[\t ]*({tokens})[: ]".format(tokens='|'.join(EXPR_PST)))
 
 
 class Breakpoint(object):
@@ -77,18 +71,27 @@ class Breakpoint(object):
             self.uid = str(uuid.uuid4())[-8:]
 
     @property
-    def rg_key(self):
-        """breakpoint's region ID"""
-        return 'bp-%s' % self.uid
+    def region_id(self):
+        """
+        breakpoint's region ID
+        """
+        return "bp-{uid}".format(uid=self.uid)
 
-    def format(self, indent):
-        """format breakpoint string"""
-        return "%s_breakpoint()  # %s\n" % (' ' * indent, self.uid)
+    def as_string(self, indent):
+        """
+        format breakpoint string
+        """
+        debugger = settings.get('debugger', 'pdb')
+        return "{indent}import {debugger}; {debugger}.set_trace()  # breakpoint {uid} //\n".format(
+            indent=' ' * indent, debugger=debugger, uid=self.uid)
 
     def highlight(self, view, rg):
-        """colorize the breakpoint's region"""
+        """
+        colorize the breakpoint's region
+        """
         scope = settings.get('highlight', 'invalid')
-        view.add_regions(self.rg_key, [rg], scope)
+        gutter_icon = settings.get('gutter_icon', 'circle')
+        view.add_regions(self.region_id, [rg], scope, gutter_icon, sublime.PERSISTENT)
 
 
 ###################
@@ -100,55 +103,24 @@ def is_python(view):
 
 
 def save_file(view):
-    save_on_toggle = settings.get('save_on_toggle', True)
+    save_on_toggle = settings.get('save_on_toggle', False)
     if save_on_toggle and view.is_dirty() and view.file_name():
         view.run_command('save')
 
 
-def ln_from_region(view, rg):  # line number from region
+def get_line_number(view, rg):
+    """
+    line number from region
+    """
     return view.rowcol(rg.end())[0]
 
 
-def goto_position(view, pos):  # move cursor to position
+def goto_position(view, pos):
+    """
+    move cursor to position
+    """
     view.sel().clear()
     view.sel().add(pos)
-
-
-def calc_pdb_position(view):
-    """
-    find and return injection spot for the pdb_block; None on failure
-    """
-    size = view.size()
-    text = view.substr(sublime.Region(0, size))
-    lines = view.lines(sublime.Region(0, size))
-
-    # make a few tries to compile the AST
-    # if code contains errors strip at line before the error and retry
-    for i in range(5):
-        try:
-            # parse through import statements to find a sweet spot for the
-            # pdb_block injection, outside of any complex/multiline import
-            # constructs, preferrably after the last import statement
-            fst = imp = nxt = None
-            for node in ast.iter_child_nodes(ast.parse(text)):
-                tx = view.substr(lines[node.lineno - 1])
-                if type(node) in (ast.Import, ast.ImportFrom):
-                    if not fst:
-                        fst = node.lineno
-                    imp = node.lineno
-                elif not fst:
-                    fst = node.lineno
-                elif imp and not (tx.endswith('"""') or tx.endswith("'''")):
-                    nxt = node.lineno
-                    break
-            ln = nxt if nxt else imp if imp else fst
-            return view.text_point(ln - 1 if ln > 1 else ln, 0)
-        except (IndentationError, SyntaxError) as e:
-            debug('err in line %d %r' % (
-                  e.lineno, view.substr(lines[e.lineno - 1])))
-            size = lines[e.lineno - 2].begin()
-            text = view.substr(sublime.Region(0, size))
-            lines = view.lines(sublime.Region(0, size))
 
 
 def calc_indent(view, rg):
@@ -235,25 +207,12 @@ def calc_indent(view, rg):
         return _result('he1-2', next_indent)
 
 
-def find_pdb_block(view):
-    """return position of the pdb_block, or None"""
-    rg = view.find(pdb_block.strip(), 0, sublime.LITERAL)
-    if rg:
-        return rg.begin()
-
-
 def find_breakpoint(view):
-    """return position of the 1st breakpoint, or None"""
+    """
+    return position of the 1st breakpoint, or None
+    """
     rg = view.find(bp_regex, 0)
-    if rg:
-        return rg.end()
-
-
-def remove_pdb_block(edit, view):
-    pos = find_pdb_block(view)
-    rg = sublime.Region(pos, pos + len(pdb_block))
-    assert pdb_block in view.substr(rg), rg
-    view.erase(edit, rg)
+    if rg: return rg.end()
 
 
 def remove_breakpoint(edit, view, rg):
@@ -262,25 +221,15 @@ def remove_breakpoint(edit, view, rg):
     """
     rg = view.full_line(rg)
     lines = view.lines(sublime.Region(0, rg.end()))
-    ln = min(ln_from_region(view, rg), len(lines) - 1)
+    ln = min(get_line_number(view, rg), len(lines) - 1)
 
     for line in (lines[ln], lines[ln - 1]):  # search current and prev lines
         bp = Breakpoint(view.substr(line))
         if bp.uid:
             view.erase(edit, view.full_line(line))
-            view.erase_regions(bp.rg_key)
+            view.erase_regions(bp.region_id)
             return True
     return False
-
-
-def insert_pdb_block(edit, view):
-    """
-    inject the pdb_block construct, return its position
-    """
-    pos = calc_pdb_position(view)
-    if pos is not None:
-        view.insert(edit, pos, pdb_block)
-        return pos
 
 
 def insert_breakpoint(edit, view, rg):
@@ -288,7 +237,7 @@ def insert_breakpoint(edit, view, rg):
     rg_a = rg.begin()
     indent = calc_indent(view, rg)
     if indent is not None:
-        bp_rg_sz = view.insert(edit, rg_a, bp.format(indent))
+        bp_rg_sz = view.insert(edit, rg_a, bp.as_string(indent))
         color_rg = sublime.Region(rg_a, rg_a + bp_rg_sz)
         bp.highlight(view, color_rg)
         goto_position(view, rg_a + indent)
@@ -307,24 +256,10 @@ class ToggleBreakpointCommand(sublime_plugin.TextCommand):
         if not (is_python(view) and view.sel()[0].empty()):
             return
 
-        # check/insert the pdb_block
-        pdb_pos = find_pdb_block(view)
-        if pdb_pos is None:
-            pdb_pos = insert_pdb_block(edit, view)
-
         # remove/insert the breakpoint
         rg = view.line(view.sel()[0])
-        if remove_breakpoint(edit, view, rg):
-            # if no more breakpoints remove pdb_block
-            if not find_breakpoint(view):
-                remove_pdb_block(edit, view)
-        else:
-            # inserting a new breakpoint below pdb_block
-            if pdb_pos and rg.begin() >= pdb_pos + len(pdb_block):
-                insert_breakpoint(edit, view, rg)
-            # if insertion didn't happen undo the pdb_block
-            elif not find_breakpoint(view) and find_pdb_block(view):
-                remove_pdb_block(edit, view)
+        if not remove_breakpoint(edit, view, rg):
+            insert_breakpoint(edit, view, rg)
         save_file(view)
 
 
@@ -341,7 +276,7 @@ class GotoBreakpointCommand(sublime_plugin.TextCommand):
 
         for i, rg in enumerate(bp_regions):
             rg = view.full_line(rg)
-            ln = ln_from_region(view, rg)
+            ln = get_line_number(view, rg)
 
             # grab 2 next non-empty code lines
             for j, l in enumerate(lines[ln - 1:]):
@@ -350,7 +285,10 @@ class GotoBreakpointCommand(sublime_plugin.TextCommand):
                     continue
                 if not j:           # strip the 1st line
                     s = s.strip()
-                lnn = ln_from_region(view, l) + 1
+                lnn = get_line_number(view, l) + 1
+
+                if bp_re.match(s):
+                    s = s[s.find('# breakpoint') + 2:]
 
                 items[i].append('%d: %s' % (lnn, s))
                 if len(items[i]) > 2:
@@ -374,10 +312,6 @@ class ClearAllBreakpointsCommand(sublime_plugin.TextCommand):
                 rg = find_breakpoint(view)
                 if not (rg and remove_breakpoint(edit, view, rg)):
                     break
-
-            if find_pdb_block(view):
-                remove_pdb_block(edit, view)
-
             save_file(view)
 
 
@@ -391,7 +325,7 @@ class PythonBreakpointEventListener(sublime_plugin.EventListener):
         """
         on file load, scan it for breakpoints and highlight them
         """
-        if is_python(view) and find_pdb_block(view):
+        if is_python(view):
             for rg in view.find_all(bp_regex, 0):
                 bp = Breakpoint(view.substr(rg))
                 bp.highlight(view, rg)

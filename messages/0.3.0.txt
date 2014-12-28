@@ -1,0 +1,30 @@
+Python Breakpoints 0.3.0 Changelog:
+
+Please be sure to restart Sublime Text to start using the new version.
+
+
+New features:
+
+ - The plugin has been simplified to address some cases when it wouldn't work
+   with Python 2 constructs failing under ST3 syntax tree interpreter.
+
+ - Insertion of the import statement has been removed. All breakpoints are now
+   one-liners in the following format:
+
+   import {debugger}; {debugger}.set_trace()  # breakpoint {uid} // user-comment
+
+ - You can now add your text to the breakpoint (note the "user-comment" above).
+   It'll be displayed nicely in the "Goto Breakpoint" menu and help navigation.
+   Make sure to keep all your text in the same line.
+
+ - Added a customizable gutter icon (feature request by @j9ac9k), on by default.
+
+
+Compatibility warnings:
+
+ - Breakpoints created and saved by the earlier versions of the plugin will not
+   be recognized, you'll have to re-insert them and manually delete the import
+   statement. Sorry..
+
+ - One-liner format of the breakpoint isn't PEP8 compliant (compound statement),
+   so your linter may produce warnings.

@@ -5,13 +5,14 @@ This is a [Sublime Text](http://www.sublimetext.com) plugin allowing to quickly 
 
 ## Features
 
-* breakpoint color highlighting
+* breakpoint color highlighting, gutter icons
 * auto indentation, auto save on toggle (off by default, configurable)
 * your source file stores all breakpoints; plugin detects and recreates them on next load
+* support for user comments to help navigate among many breakpoints
 
 ## Install
 
-Through [Package Control](https://sublime.wbond.net/packages/Package%20Control):
+Through [Package Control](https://sublime.wbond.net/packages/Package%20Control) (recommended):
 
 `Command Palette` > `Package Control: Install Package` > `Python Breakpoints`
 
@@ -35,4 +36,4 @@ From GitHub: Clone this repository into your version/platform specific Packages 
 ## Caveats
 
 * only space indentation is supported
-* your mileage may vary with non-PEP8 one-liners or code without import statements
+* in some code fragments the plugin may incorrectly indent the breakpoint; in such cases just use Indent/Unindent keyboard shortcuts to move it into desired position

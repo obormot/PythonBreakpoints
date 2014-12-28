@@ -8,6 +8,9 @@
   // name of scope for color highlighting; replace with "mark" if "invalid" is annoying
   "highlight": "invalid",
 
+  // icon name for the gutter, one of: "" (disabled), "dot", "circle", "bookmark" or "cross"
+  "gutter_icon": "circle",
+
   // auto-save the file on breakpoint toggle
   "save_on_toggle": false
 }
