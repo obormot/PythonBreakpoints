@@ -10,6 +10,10 @@ This is a [Sublime Text](http://www.sublimetext.com) plugin allowing to quickly 
 * your source file stores all breakpoints; plugin detects and recreates them on next load
 * support for user comments to help navigate among many breakpoints
 
+## Screenshot
+
+<img src=https://raw.githubusercontent.com/obormot/PythonBreakpoints/master/screenshot.png>
+
 ## Install
 
 Through [Package Control](https://sublime.wbond.net/packages/Package%20Control) (recommended):
