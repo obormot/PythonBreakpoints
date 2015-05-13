@@ -46,7 +46,7 @@ if sys.version_info < (3,):
 # Constants #
 #############
 
-bp_regex = r"^[\t ]*import [\w.; ]+set_trace\(\)  # breakpoint ([a-f0-9]{8}) //"
+bp_regex = r"^[\t ]*import [\w.; ]+set_trace\(\)  # breakpoint ([a-f0-9]{8})([a-z]?) //"
 bp_re = re.compile(bp_regex, re.DOTALL)
 
 EXPR_PRE = ['class', 'def', 'if', 'for', 'try', 'while', 'with']
@@ -56,17 +56,22 @@ expr_re0 = re.compile(r"^[\t ]*({tokens})[: ]".format(tokens='|'.join(EXPR_PRE))
 expr_re1 = re.compile(r"^[\t ]*({tokens})[: ]".format(tokens='|'.join(EXPR_PRE + EXPR_PST)))
 expr_re2 = re.compile(r"^[\t ]*({tokens})[: ]".format(tokens='|'.join(EXPR_PST)))
 
+TRY_STR = 'try:'
+EXCEPT_STR = 'except Exception as exc:'
+
 
 class Breakpoint(object):
     """
     Breakpoint object with its UID
     """
-    def __init__(self, from_text=None):
+    def __init__(self, from_text=None, in_block=False):
         self.uid = None
+        self.in_block = in_block
         if from_text is not None:
             m = bp_re.match(from_text)
             if m:
                 self.uid = m.groups()[0]
+                self.in_block = m.groups()[1] == 'x'
         else:
             self.uid = str(uuid.uuid4())[-8:]
 
@@ -82,8 +87,8 @@ class Breakpoint(object):
         format breakpoint string
         """
         debugger = settings.get('debugger', 'pdb')
-        return "{indent}import {debugger}; {debugger}.set_trace()  # breakpoint {uid} //\n".format(
-            indent=' ' * indent, debugger=debugger, uid=self.uid)
+        return "{indent}import {dbg}; {dbg}.set_trace()  # breakpoint {uid}{mark} //\n".format(
+            indent=' ' * indent, dbg=debugger, uid=self.uid, mark='x' if self.in_block else '')
 
     def highlight(self, view, rg):
         """
@@ -106,6 +111,13 @@ def save_file(view):
     save_on_toggle = settings.get('save_on_toggle', False)
     if save_on_toggle and view.is_dirty() and view.file_name():
         view.run_command('save')
+
+
+def get_indent(s):
+    """
+    return number of spaces left of the first non-whitespace character in s
+    """
+    return len(s) - len(s.lstrip())
 
 
 def get_line_number(view, rg):
@@ -161,10 +173,9 @@ def calc_indent(view, rg):
     next_line = view.substr(lines[ln + 1])
 
     # calculate indent of current, previous and next lines
-    _indent = lambda x: len(x) - len(x.lstrip())
-    curr_indent = _indent(curr_line)
-    prev_indent = _indent(prev_line)
-    next_indent = _indent(next_line)
+    curr_indent = get_indent(curr_line)
+    prev_indent = get_indent(prev_line)
+    next_indent = get_indent(next_line)
     debug('indent p', prev_indent, 'c', curr_indent, 'n', next_indent)
 
     def _result(msg, indent):
@@ -212,7 +223,7 @@ def find_breakpoint(view):
     return position of the 1st breakpoint, or None
     """
     rg = view.find(bp_regex, 0)
-    if rg: return rg.end()
+    return rg.end() if rg else None
 
 
 def remove_breakpoint(edit, view, rg):
@@ -228,19 +239,79 @@ def remove_breakpoint(edit, view, rg):
         if bp.uid:
             view.erase(edit, view.full_line(line))
             view.erase_regions(bp.region_id)
+            if bp.in_block:
+                # remove the try-except block
+                indent = None
+                for pline in reversed(lines[:ln]):
+                    if pline == line:
+                        continue
+
+                    s = view.substr(pline)
+
+                    # first, find the "except:" block
+                    if indent is None:
+                        if s.strip().startswith(EXCEPT_STR):
+                            indent = get_indent(s)
+                            view.erase(edit, view.full_line(pline))
+                        continue
+
+                    # it's a "try:" at the same indent level, finish
+                    if s.startswith(' ' * indent + TRY_STR):
+                        view.erase(edit, view.full_line(pline))
+                        break
+
+                    # else outdent each line within the try-except block
+                    indent_rg = sublime.Region(pline.begin(), pline.begin() + tab_size)
+                    view.erase(edit, indent_rg)
             return True
     return False
 
 
 def insert_breakpoint(edit, view, rg):
+    indent = calc_indent(view, rg)
+    if indent is None:
+        return
+
     bp = Breakpoint()
     rg_a = rg.begin()
-    indent = calc_indent(view, rg)
-    if indent is not None:
-        bp_rg_sz = view.insert(edit, rg_a, bp.as_string(indent))
-        color_rg = sublime.Region(rg_a, rg_a + bp_rg_sz)
-        bp.highlight(view, color_rg)
-        goto_position(view, rg_a + indent)
+    bp_rg_sz = view.insert(edit, rg_a, bp.as_string(indent))
+    color_rg = sublime.Region(rg_a, rg_a + bp_rg_sz)
+    bp.highlight(view, color_rg)
+    goto_position(view, rg_a + indent)
+
+
+def insert_try_except_breakpoint(edit, view, rgs):
+    # find first non-empty non-comment line in the selection and get its indent
+    indent = None
+    for rg in rgs:
+        line = view.substr(rg).strip()
+        if line and not line.startswith('#'):
+            indent = get_indent(view.substr(rg))
+            break
+
+    if indent is None:  # nothing worthwhile in the selection
+        return
+
+    rg_a = rgs[0].begin()
+    rg_b = view.full_line(rgs[-1]).end()
+    indent_str = ' ' * indent
+
+    # insert "try:" at the same indent level
+    offset = view.insert(edit, rg_a, "{}{}\n".format(indent_str, TRY_STR))
+
+    # add one level of indentation to every line in the block
+    for rg in rgs:
+        offset += view.insert(edit, rg.begin() + offset, ' ' * tab_size)
+
+    offset += view.insert(edit, rg_b + offset, "{}{}\n".format(indent_str, EXCEPT_STR))
+
+    # insert the breakpoint
+    bp = Breakpoint(in_block=True)
+    rg_a = rg_b + offset
+    bp_rg_sz = view.insert(edit, rg_a, bp.as_string(indent + tab_size))
+    color_rg = sublime.Region(rg_a, rg_a + bp_rg_sz)
+    bp.highlight(view, color_rg)
+    goto_position(view, rg_a + indent + tab_size)
 
 
 ###############
@@ -252,15 +323,22 @@ class ToggleBreakpointCommand(sublime_plugin.TextCommand):
     def run(self, edit):
         view = self.view
 
-        # don't handle non-Python and selected text
-        if not (is_python(view) and view.sel()[0].empty()):
+        # don't handle non-Python
+        if not is_python(view):
             return
 
-        # remove/insert the breakpoint
-        rg = view.line(view.sel()[0])
-        if not remove_breakpoint(edit, view, rg):
-            insert_breakpoint(edit, view, rg)
-        save_file(view)
+        # is there a selected text?
+        if view.sel()[0].empty():
+            # remove/insert a one-line breakpoint
+            rg = view.line(view.sel()[0])
+            if not remove_breakpoint(edit, view, rg):
+                insert_breakpoint(edit, view, rg)
+            save_file(view)
+        else:
+            # wrap the selected text in try-except
+            rgs = view.lines(view.sel()[0])
+            insert_try_except_breakpoint(edit, view, rgs)
+            save_file(view)
 
 
 class GotoBreakpointCommand(sublime_plugin.TextCommand):
@@ -290,7 +368,7 @@ class GotoBreakpointCommand(sublime_plugin.TextCommand):
                 if bp_re.match(s):
                     s = s[s.find('# breakpoint') + 2:]
 
-                items[i].append('%d: %s' % (lnn, s))
+                items[i].append('{}: {}'.format(lnn, s))
                 if len(items[i]) > 2:
                     break
 

@@ -1,0 +1,11 @@
+Python Breakpoints 0.4.0 Changelog:
+
+
+New features:
+
+ - Now if you select a block of code (one or multiple lines), and press Toggle Breakpoint,
+   the selected lines will be wrapped in a try-except statement and a new breakpoint will
+   be added under the except: section.
+
+   To undo this construct simply place the cursor on the breakpoint and press Toggle, as
+   you would for a regular breakpoint.

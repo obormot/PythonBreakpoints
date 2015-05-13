@@ -33,6 +33,8 @@ From GitHub: Clone this repository into your version/platform specific Packages 
 * `Goto` a selected breakpoint (or `ctrl+shift+g`, or `Menu` > `Goto` > `Goto Python Breakpoint...`)
 * `Clear All` breakpoints in current file (or `Menu` > `Tools` > `Breakpoints` > `Clear All Python Breakpoints`)
 
+If one or multiple lines of code are selected, the Toggle command will wrap the selected lines in a try-except statement and a new breakpoint will be added under the except: section.
+
 ## Settings
 
 `Preferences` > `Package Settings` > `Python Breakpoints`
